@@ -1,30 +1,43 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:myportofolio_mobile/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('menampilkan identitas dan tombol menu', (tester) async {
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('2506623723'), findsOneWidget);
+    expect(find.text('Dyah Zhafira'), findsOneWidget);
+    expect(find.text('PBP E'), findsOneWidget);
+    expect(find.text('Lihat Project'), findsOneWidget);
+    expect(find.text('Tambah Project'), findsOneWidget);
+    expect(find.text('Logout'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('menekan tombol memunculkan SnackBar', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.text('Tambah Project'));
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(
+      find.text('Kamu telah menekan tombol Tambah Project!'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('menekan Logout membuka dialog konfirmasi', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.ensureVisible(find.text('Logout'));
+    await tester.tap(find.text('Logout'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Yakin mau keluar dari MyPortfolio?'), findsOneWidget);
+
+    await tester.tap(find.text('Batal'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Yakin mau keluar dari MyPortfolio?'), findsNothing);
   });
 }

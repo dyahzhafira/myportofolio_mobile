@@ -8,14 +8,14 @@ class MyHomePage extends StatelessWidget {
   final String kelas = "PBP E";
 
   final List<ItemHomepage> items = [
-    ItemHomepage("Lihat Project", Icons.folder),
-    ItemHomepage("Lihat Experience", Icons.work),
-    ItemHomepage("Logout", Icons.logout),
+    ItemHomepage("Lihat Project", Icons.folder, Colors.blue),
+    ItemHomepage("Lihat Experience", Icons.work, Colors.purple),
+    ItemHomepage("Tambah Project", Icons.add_circle, Colors.green),
+    ItemHomepage("Logout", Icons.logout, Colors.red),
   ];
 
   @override
   Widget build(BuildContext context) {
-    // Scaffold menyediakan struktur dasar halaman (AppBar, body, SnackBar).
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -24,12 +24,11 @@ class MyHomePage extends StatelessWidget {
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Tiga InfoCard sejajar secara horizontal.
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -52,9 +51,8 @@ class MyHomePage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Kisi 3 kolom untuk kartu tombol menu.
                   GridView.count(
-                    primary: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(20),
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
@@ -75,7 +73,6 @@ class MyHomePage extends StatelessWidget {
 }
 
 class InfoCard extends StatelessWidget {
-  // Kartu informasi: judul (title) dan isi (content).
   final String title;
   final String content;
 
@@ -86,7 +83,6 @@ class InfoCard extends StatelessWidget {
     return Card(
       elevation: 2.0,
       child: Container(
-        // Lebar kartu mengikuti proporsi layar.
         width: MediaQuery.of(context).size.width / 3.5,
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -101,13 +97,16 @@ class InfoCard extends StatelessWidget {
   }
 }
 
+/// Data tombol menu
 class ItemHomepage {
   final String name;
   final IconData icon;
+  final Color color;
 
-  ItemHomepage(this.name, this.icon);
+  ItemHomepage(this.name, this.icon, this.color);
 }
 
+/// Kartu tombol menu
 class ItemCard extends StatelessWidget {
   final ItemHomepage item;
 
@@ -116,17 +115,18 @@ class ItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      // Warna sekunder dari tema aplikasi.
-      color: Theme.of(context).colorScheme.secondary,
+      color: item.color,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: () {
-          // Tampilkan SnackBar saat kartu ditekan.
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!")),
+              SnackBar(
+                content: Text("Kamu telah menekan tombol ${item.name}!"),
+              ),
             );
+          if (item.name == "Logout") showLogoutDialog(context);
         },
         child: Container(
           padding: const EdgeInsets.all(8),
@@ -148,4 +148,25 @@ class ItemCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Dialog konfirmasi logout
+void showLogoutDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Logout'),
+      content: const Text('Yakin mau keluar dari MyPortfolio?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Keluar'),
+        ),
+      ],
+    ),
+  );
 }
