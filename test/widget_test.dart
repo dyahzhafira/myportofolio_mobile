@@ -40,4 +40,20 @@ void main() {
 
     expect(find.text('Yakin mau keluar dari MyPortfolio?'), findsNothing);
   });
+
+  testWidgets('menekan Keluar menutup dialog dan menampilkan SnackBar', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.ensureVisible(find.text('Logout'));
+    await tester.tap(find.text('Logout'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Keluar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Yakin mau keluar dari MyPortfolio?'), findsNothing);
+    expect(find.text('Kamu telah keluar dari MyPortfolio'), findsOneWidget);
+  });
 }

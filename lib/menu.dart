@@ -163,7 +163,17 @@ void showLogoutDialog(BuildContext context) {
           child: const Text('Batal'),
         ),
         FilledButton(
-          onPressed: () => Navigator.of(dialogContext).pop(),
+          style: FilledButton.styleFrom(backgroundColor: Colors.red),
+          onPressed: () {
+            Navigator.of(dialogContext).pop();
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                const SnackBar(
+                  content: Text('Kamu telah keluar dari MyPortfolio'),
+                ),
+              );
+          },
           child: const Text('Keluar'),
         ),
       ],
