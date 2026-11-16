@@ -13,6 +13,7 @@ class MyHomePage extends StatelessWidget {
     ItemHomepage("Lihat Project", Icons.folder, Colors.blue),
     ItemHomepage("Lihat Experience", Icons.work, Colors.purple),
     ItemHomepage("Tambah Project", Icons.add_circle, Colors.green),
+    ItemHomepage("Tambah Experience", Icons.post_add, Colors.orange),
     ItemHomepage("Logout", Icons.logout, Colors.red),
   ];
 

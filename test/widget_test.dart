@@ -119,4 +119,94 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Proyek berhasil ditambahkan!'), findsNothing);
   });
+
+  testWidgets('drawer membuka form experience', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add Experience'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add Experience Form'), findsOneWidget);
+  });
+
+  testWidgets('form experience menolak input kosong', (tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.ensureVisible(find.text('Tambah Experience'));
+    await tester.tap(find.text('Tambah Experience'));
+    await tester.pumpAndSettle(
+      const Duration(seconds: 5),
+    ); // tunggu SnackBar hilang
+
+    await tester.ensureVisible(find.text('Simpan'));
+    await tester.tap(find.text('Simpan'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Posisi tidak boleh kosong!'), findsOneWidget);
+    expect(find.text('Tanggal mulai harus dipilih!'), findsOneWidget);
+    expect(find.text('Tanggal selesai harus dipilih!'), findsOneWidget);
+    expect(find.text('Experience berhasil ditambahkan!'), findsNothing);
+  });
+
+  testWidgets('form experience valid menampilkan dialog ringkasan', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.ensureVisible(find.text('Tambah Experience'));
+    await tester.tap(find.text('Tambah Experience'));
+    await tester.pumpAndSettle(
+      const Duration(seconds: 5),
+    ); // tunggu SnackBar hilang
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Posisi'),
+      'Intern',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Perusahaan'),
+      'Acme',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Deskripsi'),
+      'Membuat aplikasi',
+    );
+    await tester.tap(find.widgetWithText(TextFormField, 'Tanggal Mulai'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Masih bekerja di sini'));
+    await tester.tap(find.text('Masih bekerja di sini'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Simpan'));
+    await tester.tap(find.text('Simpan'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Experience berhasil ditambahkan!'), findsOneWidget);
+    expect(find.text('Posisi: Intern'), findsOneWidget);
+    expect(find.text('Selesai: Sekarang'), findsOneWidget);
+  });
+
+  testWidgets('form experience menolak tautan tanpa http', (tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.ensureVisible(find.text('Tambah Experience'));
+    await tester.tap(find.text('Tambah Experience'));
+    await tester.pumpAndSettle(
+      const Duration(seconds: 5),
+    ); // tunggu SnackBar hilang
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Tautan (opsional)'),
+      'bukan-url',
+    );
+    await tester.ensureVisible(find.text('Simpan'));
+    await tester.tap(find.text('Simpan'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Tautan harus diawali http:// atau https://'),
+      findsOneWidget,
+    );
+  });
 }
