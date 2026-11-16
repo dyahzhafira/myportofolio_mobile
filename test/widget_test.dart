@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:myportofolio_mobile/main.dart';
@@ -55,5 +56,67 @@ void main() {
 
     expect(find.text('Yakin mau keluar dari MyPortfolio?'), findsNothing);
     expect(find.text('Kamu telah keluar dari MyPortfolio'), findsOneWidget);
+  });
+
+  testWidgets('drawer membuka form lalu kembali ke Home', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add Project'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add Project Form'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
+  });
+
+  testWidgets('tombol Tambah Project membuka form', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.text('Tambah Project'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add Project Form'), findsOneWidget);
+  });
+
+  testWidgets('form menolak input kosong', (tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.tap(find.text('Tambah Project'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nama proyek tidak boleh kosong!'), findsOneWidget);
+    expect(find.text('Deskripsi proyek tidak boleh kosong!'), findsOneWidget);
+    expect(find.text('Proyek berhasil ditambahkan!'), findsNothing);
+  });
+
+  testWidgets('form valid menampilkan dialog berisi data', (tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.tap(find.text('Tambah Project'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Nama Proyek'),
+      'MyPortfolio',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Deskripsi Proyek'),
+      'Aplikasi portofolio',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
+    expect(find.text('Nama Proyek: MyPortfolio'), findsOneWidget);
+
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.text('Proyek berhasil ditambahkan!'), findsNothing);
   });
 }
