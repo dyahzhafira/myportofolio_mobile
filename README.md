@@ -6,7 +6,7 @@ Kelas : PBP E
 
 ### Deskripsi Proyek
 
-Mobile app untuk portfolio berbasis Flutter, klien mobile untuk website portofolio Django ([myportofolio](https://github.com/dyahzhafira/myportofolio)). Saat ini baru halaman menu utama: kartu identitas dan menu aksi portofolio. Belum terhubung ke API Django.
+Mobile app untuk portfolio berbasis Flutter, klien mobile untuk website portofolio Django ([myportofolio](https://github.com/dyahzhafira/myportfolio)). Saat ini baru halaman menu utama: kartu identitas dan menu aksi portofolio. Belum terhubung ke API Django.
 
 ### Setup Lokal
 
