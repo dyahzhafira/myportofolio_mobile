@@ -6,7 +6,7 @@ Kelas : PBP E
 
 ### Deskripsi Proyek
 
-Mobile app untuk portfolio berbasis Flutter, klien mobile untuk website portofolio Django ([myportofolio](https://github.com/dyahzhafira/myportfolio)). Saat ini baru halaman menu utama: kartu identitas dan menu aksi portofolio. Belum terhubung ke API Django.
+Mobile app untuk portfolio berbasis Flutter, klien mobile untuk website portofolio Django ([myportofolio](https://github.com/dyahzhafira/myportfolio)). Saat ini sudah ada halaman menu utama, drawer navigasi, serta form Tambah Project dan Tambah Experience. Data form belum disimpan dan belum terhubung ke API Django.
 
 ### Setup Lokal
 
@@ -22,13 +22,19 @@ Mobile app untuk portfolio berbasis Flutter, klien mobile untuk website portofol
 | Berkas | Isi |
 |---|---|
 | `lib/main.dart` | Bootstrap aplikasi, `MaterialApp` dan tema (indigo, secondary amber) |
-| `lib/menu.dart` | `MyHomePage` (Stateless), `InfoCard`, `ItemHomepage`, `ItemCard`, `showLogoutDialog` |
-| `test/widget_test.dart` | Widget test halaman menu |
+| `lib/screens/menu.dart` | `MyHomePage` (Stateless) dan `InfoCard` |
+| `lib/screens/project_form.dart` | `ProjectFormPage` (Stateful): form Tambah Project |
+| `lib/screens/experience_form.dart` | `ExperienceFormPage` (Stateful): form Tambah Experience |
+| `lib/widgets/left_drawer.dart` | `LeftDrawer`, dipakai di semua halaman |
+| `lib/widgets/project_card.dart` | `ItemHomepage`, `ItemCard`, `showLogoutDialog` |
+| `test/widget_test.dart` | Widget test menu, drawer, dan kedua form |
 
 ### Progres Mingguan
 
 - Tutorial 08: setup Flutter, proyek `myportofolio_mobile`, pemisahan `menu.dart`, `MyHomePage` Stateless, `InfoCard`, `ItemCard`, `SnackBar`.
 - Tugas 7: identitas sendiri pada `InfoCard`, warna latar berbeda per tombol lewat field `color` di `ItemHomepage`, tombol Lihat Project, Lihat Experience, Tambah Project, dan Logout.
+- Tutorial 09: `LeftDrawer`, form Tambah Project (validasi dan dialog ringkasan), navigasi dengan `Navigator.push` dan `pushReplacement`, refactor ke `lib/screens/` dan `lib/widgets/`.
+- Tugas 8: form Tambah Experience (date picker, validasi tanggal dan URL), card Tambah Experience, opsi Add Experience di drawer.
 
 ### Fitur Menu
 
@@ -37,9 +43,21 @@ Mobile app untuk portfolio berbasis Flutter, klien mobile untuk website portofol
 | Lihat Project | folder | biru |
 | Lihat Experience | work | ungu |
 | Tambah Project | add_circle | hijau |
+| Tambah Experience | post_add | oranye |
 | Logout | logout | merah |
 
-Tiap tombol memunculkan SnackBar "Kamu telah menekan tombol [Nama]!".
+#### Form Tambah Experience (Tugas 8)
+
+| Field | Input | Validasi |
+|---|---|---|
+| Judul | teks | wajib, tidak hanya spasi, maks 255 karakter |
+| Kategori | dropdown | Internship, Research, Volunteer, Part-Time, Full-Time (default), Freelance |
+| Tanggal Mulai | `showDatePicker` | wajib |
+| Tanggal Selesai | `showDatePicker` | wajib kecuali "Masih bekerja", tidak boleh sebelum tanggal mulai |
+| Deskripsi | teks multibaris | wajib, maks 300 karakter |
+| Thumbnail URL | teks URL | opsional, harus diawali `http://` atau `https://` |
+
+Field mengikuti model `Experience` di website Django. 
 
 #### FITUR TAMBAHAN (Tugas 7)
 
@@ -90,3 +108,31 @@ Saya memakai Claude dengan mengirimkan PDF tugas ke AI dan minta alur kerja dan 
 
 
 Keterbatasan AI: Karena AI tidak bisa run code, sehingga terdapat beberapa penyesuaian yang dilakukan oleh saya sendiri. Salah satunya, karena AI hanya mengirimkan potongan code, sehingga function seperti ShowLogoutDialog saya sesuaikan karena pada awalnya itu masih berupa message saja tanpa konfirmasi. 
+
+### Tugas 8
+1. Jelaskan perbedaan antara Navigator.push(), Navigator.pushReplacement(), dan Navigator.pop(). Metode apa yang digunakan untuk membuka formulir dari kartu aksi? Jelaskan juga bagaimana opsi Home di drawer membawa pengguna kembali ke halaman utama.
+
+Navigator.push() tambah halaman baru di stack, jadi halaman yang lama tetap ada di bawahnya dan tombol back kembali ke sana, pushReplacement() untuk ganti page paling atas ke page baru, sehingga nanti page lama dibuang dari stack. pop() untuk tutup page/dialog paling atas dan balik ke bawahnya. Untuk membuka form dari action card, saya menggunakan Navigator.push() di ItemCard agar user bisa kembali ke menu dengan button back. Opsi home di drawer menggunakan pushReplacement() ke MyHomePage, sehingga page form diganti ke halaman utama dan stack ga menumpuk tiap pindah lewat drawer.
+
+2. Bagaimana susunan Scaffold, AppBar, dan Drawer membantu menjaga struktur halaman tetap konsisten? Berikan satu contoh penggunaan warna tema portofolio di lebih dari satu halaman.
+
+Scaffold untuk slot tetap appBar, drawer, dan body. Jadi, tiap halaman punya kerangka yang sama dan diisi body yang berbeda aja, LeftDrawer dibuat satu kali di lib/widgets/ dan dipasang di main page, form project, dan form experience, sehingga navigasinya sama dan perubahan hanya di 1 tempat. Cotoh warna tema, pakai indigo di AppBar halaman utama dari colorScheme.primary, AppBar form Project & form Experience, DrawerHeader, dan save button dengan teks putih semua.
+
+3. Mengapa tata letak tersebut dipilih untuk formulir? Jelaskan peran widget pengatur jarak dan widget penggulir ketika ruang layar terbatas.
+
+Karena form punya banyak field, seperti judul, kategori, tanggal, deskripsi, URL, dan tombol. Sehingga, di screen HP atau sedang terdapat keyboard. tampilan Column bisa overflow. Oleh karena itu, form disusun dalam Column di SingleChildScrollView  dan tiap fieldnya diwrap Padding. SingleChildScrollView akan membuat bisa discroll, sehingga semua field dan button save bisa dijangkau. Padding juga kasih jarak antar dield agar tidak terlalu nempel.
+
+4. Apa peran GlobalKey<FormState>, validator, dan validate() saat tombol Simpan ditekan? Berikan satu contoh nilai yang ditolak oleh validasi dan jelaskan mengapa memilih jenis input atau papan ketik saja belum cukup.
+GlobalKey<FormSate> dipasang di widget Form agar button save yang ada di luar field bisa akses FormState. Validator berfungsi di tiap field yang return message error or null kalau isinya valid. Ketika button save diklik, _formKey.currentState!.validate() akan jalanin semua validator sekaligus, dan nampilin error message di kolom yang bermasalah dan return true kalau semua valid, baru show dialog ringkasan. Contoh nilai yang ditolak, title berisi space aja, URL thumbnail bukan url, atay tanggal selesai yang lebih awal dari tanggal mulai. Jenis input atau keyboard itu belum cukup karena hanya atur tampilan input, keyboardType: url, tapi ga cegah user buat ketik atau paste text apapun. Selain itu, date picker tidak tau bahwa tanggal selesai itu harus setelah tanggal mulai, sehingga, untuk aturan seperti itu harus dicek dengan validator.
+
+### AI Disclosure (Tugas 8)
+Tools: Claude 
+log chat: https://claude.ai/share/8f2c00f8-8baf-42f7-bfd7-a722c8cf83ec
+Saya kirim PDF tutorial dan tugas, lalu minta Claude cek repo, chekclist apa yang belum dikerjakan, dan mengerjakan bertahap mulai dari drawer sampai experience form. Bagian yang dibantu AI salah satunya template form dan AppDrawer.
+
+Keterbatasan AI dan perbaikan yang dilakukan:
+- Draf action card Experience itu masih berupa kode tanpa class dan import, selain itu masih menggunakan `AppDrawer` yang tidak sesuai dengan projek ini, sehingga dilakukan perbaikan dan penyesuaian manual. 
+- AI awalnya tidak tahu model data di web django sebelumnya, sehingga field form (Posisi, Perusahaan) tidak sesuai. Sehingga perlu penyesuaian lagi dengan model data di repo web. 
+
+#### FITUR TAMBAHAN (Tugas 8)
+- Checkbox "Masih bekerja di sini", bakal nonaktifin tanggal selesai, dialog show "Selesai: Sekarang".
