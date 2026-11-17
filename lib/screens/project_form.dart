@@ -26,6 +26,15 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // SnackBar dari card
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(

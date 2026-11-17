@@ -11,24 +11,41 @@ class ExperienceFormPage extends StatefulWidget {
 
 class _ExperienceFormPageState extends State<ExperienceFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final _positionCtrl = TextEditingController();
-  final _companyCtrl = TextEditingController();
+  final _titleCtrl = TextEditingController();
   final _startCtrl = TextEditingController();
   final _endCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
-  final _linkCtrl = TextEditingController();
+  final _thumbnailCtrl = TextEditingController();
   DateTime? _start;
   DateTime? _end;
   bool _isCurrent = false;
+  String _category = 'Full-Time';
+
+  final List<String> _categories = [
+    'Internship',
+    'Research',
+    'Volunteer',
+    'Part-Time',
+    'Full-Time',
+    'Freelance',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // SnackBar dari card
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    });
+  }
 
   @override
   void dispose() {
-    _positionCtrl.dispose();
-    _companyCtrl.dispose();
+    _titleCtrl.dispose();
     _startCtrl.dispose();
     _endCtrl.dispose();
     _descCtrl.dispose();
-    _linkCtrl.dispose();
+    _thumbnailCtrl.dispose();
     super.dispose();
   }
 
@@ -58,11 +75,12 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     final link = value?.trim() ?? '';
     if (link.isEmpty) return null;
     final uri = Uri.tryParse(link);
+    // tryParse ga lempar error, jadi cek scheme dan host manual
     final valid =
         uri != null &&
         (uri.scheme == 'http' || uri.scheme == 'https') &&
         uri.host.isNotEmpty;
-    return valid ? null : 'Tautan harus diawali http:// atau https://';
+    return valid ? null : 'URL harus diawali http:// atau https://';
   }
 
   Future<void> _pickDate({required bool isStart}) async {
@@ -73,6 +91,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
       lastDate: DateTime.now(),
     );
     if (picked == null) return;
+    // lastDate hari ini
     setState(() {
       if (isStart) {
         _start = picked;
@@ -90,6 +109,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
       _start = null;
       _end = null;
       _isCurrent = false;
+      _category = 'Full-Time';
       _startCtrl.clear();
       _endCtrl.clear();
     });
@@ -105,12 +125,12 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Posisi: ${_positionCtrl.text.trim()}'),
-              Text('Perusahaan: ${_companyCtrl.text.trim()}'),
+              Text('Judul: ${_titleCtrl.text.trim()}'),
+              Text('Kategori: $_category'),
               Text('Mulai: ${_startCtrl.text}'),
               Text('Selesai: ${_isCurrent ? 'Sekarang' : _endCtrl.text}'),
               Text('Deskripsi: ${_descCtrl.text.trim()}'),
-              Text('Tautan: ${_linkCtrl.text.trim()}'),
+              Text('Thumbnail: ${_thumbnailCtrl.text.trim()}'),
             ],
           ),
         ),
@@ -146,17 +166,20 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
-                  controller: _positionCtrl,
-                  decoration: _decoration('Posisi'),
-                  validator: (v) => _validateRequired(v, 'Posisi'),
+                  controller: _titleCtrl,
+                  decoration: _decoration('Judul'),
+                  validator: (v) => _validateRequired(v, 'Judul', max: 255),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: _companyCtrl,
-                  decoration: _decoration('Perusahaan'),
-                  validator: (v) => _validateRequired(v, 'Perusahaan'),
+                child: DropdownButtonFormField<String>(
+                  decoration: _decoration('Kategori'),
+                  initialValue: _category,
+                  items: _categories
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
+                  onChanged: (value) => setState(() => _category = value!),
                 ),
               ),
               Padding(
@@ -199,6 +222,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                     suffix: const Icon(Icons.calendar_today),
                   ),
                   validator: (_) {
+                    // ended_at boleh kosong di django 
                     if (_isCurrent) return null;
                     if (_end == null) return 'Tanggal selesai harus dipilih!';
                     if (_start != null && _end!.isBefore(_start!)) {
@@ -220,10 +244,10 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
-                  controller: _linkCtrl,
+                  controller: _thumbnailCtrl,
                   keyboardType: TextInputType.url,
                   decoration: _decoration(
-                    'Tautan (opsional)',
+                    'Thumbnail URL (opsional)',
                     hint: 'https://...',
                   ),
                   validator: _validateLink,
