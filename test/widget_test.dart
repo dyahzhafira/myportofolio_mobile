@@ -211,4 +211,26 @@ void main() {
     expect(find.text('Add Experience Form'), findsOneWidget);
     expect(find.textContaining('Kamu telah menekan'), findsNothing);
   });
+
+  testWidgets('layar ponsel sempit tidak overflow', (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    for (final card in ['Tambah Project', 'Tambah Experience']) {
+      await tester.ensureVisible(find.text(card));
+      await tester.tap(find.text(card));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.byTooltip('Open navigation menu'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+    }
+  });
 }

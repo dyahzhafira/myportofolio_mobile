@@ -174,6 +174,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: DropdownButtonFormField<String>(
+                  isExpanded: true,
                   decoration: _decoration('Kategori'),
                   initialValue: _category,
                   items: _categories
@@ -222,7 +223,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                     suffix: const Icon(Icons.calendar_today),
                   ),
                   validator: (_) {
-                    // ended_at boleh kosong di django 
+                    // ended_at boleh kosong di django
                     if (_isCurrent) return null;
                     if (_end == null) return 'Tanggal selesai harus dipilih!';
                     if (_start != null && _end!.isBefore(_start!)) {

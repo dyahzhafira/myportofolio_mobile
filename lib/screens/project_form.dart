@@ -102,6 +102,7 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: DropdownButtonFormField<String>(
+                  isExpanded: true, // cegah overflow di layar sempit
                   decoration: InputDecoration(
                     labelText: "Kategori Proyek",
                     border: OutlineInputBorder(
