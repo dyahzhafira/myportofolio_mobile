@@ -27,7 +27,7 @@ class Project {
 
   final String projectType;
 
-  @JsonKey(defaultValue: <String>[])
+  @JsonKey(fromJson: _techStackFromJson)
   final List<String> techStack;
 
   @JsonKey(defaultValue: '')
@@ -37,4 +37,9 @@ class Project {
   final String projectImageUrl;
 
   Map<String, dynamic> toJson() => _$ProjectToJson(this);
+}
+
+List<String> _techStackFromJson(Object? json) {
+  if (json is! List) return const [];
+  return json.map((item) => item is Map ? '${item['name']}' : '$item').toList();
 }

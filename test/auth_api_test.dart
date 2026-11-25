@@ -128,6 +128,34 @@ void main() {
       expect(find.byType(Image), findsNothing);
     });
 
+    testWidgets('tech_stack berisi objek name dan icon terbaca', (
+      tester,
+    ) async {
+      final projects = [
+        {
+          'id': '22222222-2222-2222-2222-222222222222',
+          'title': 'SignD',
+          'description': 'Disaster response',
+          'status': 'progress',
+          'project_type': 'group',
+          'tech_stack': [
+            {'name': 'Flutter', 'icon': 'flutter'},
+            {'name': 'Go/Fiber', 'icon': 'go'},
+          ],
+          'project_url': '',
+          'project_image_url': '',
+        },
+      ];
+      await tester.pumpWidget(
+        buildApp(client: fakeBackend(projects: projects)),
+      );
+      await tester.tap(find.text('Lihat Project'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('SignD'), findsOneWidget);
+      expect(find.textContaining('Flutter, Go/Fiber'), findsOneWidget);
+    });
+
     testWidgets('list kosong menampilkan pesan', (tester) async {
       await tester.pumpWidget(buildApp(client: fakeBackend(projects: [])));
       await tester.tap(find.text('Lihat Project'));
