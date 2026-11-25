@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
-/// Halaman form tambah experience (belum disimpan ke database)
 class ExperienceFormPage extends StatefulWidget {
   const ExperienceFormPage({super.key});
 
@@ -33,7 +32,6 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
   @override
   void initState() {
     super.initState();
-    // SnackBar dari card
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
     });
@@ -75,7 +73,6 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     final link = value?.trim() ?? '';
     if (link.isEmpty) return null;
     final uri = Uri.tryParse(link);
-    // tryParse ga lempar error, jadi cek scheme dan host manual
     final valid =
         uri != null &&
         (uri.scheme == 'http' || uri.scheme == 'https') &&
@@ -91,7 +88,6 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
       lastDate: DateTime.now(),
     );
     if (picked == null) return;
-    // lastDate hari ini
     setState(() {
       if (isStart) {
         _start = picked;
@@ -223,7 +219,6 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                     suffix: const Icon(Icons.calendar_today),
                   ),
                   validator: (_) {
-                    // ended_at boleh kosong di django
                     if (_isCurrent) return null;
                     if (_end == null) return 'Tanggal selesai harus dipilih!';
                     if (_start != null && _end!.isBefore(_start!)) {

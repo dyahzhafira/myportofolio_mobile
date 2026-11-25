@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:myportofolio_mobile/main.dart';
+import 'test_app.dart';
 
 void main() {
   testWidgets('menampilkan identitas dan tombol menu', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
 
     expect(find.text('2506623723'), findsOneWidget);
     expect(find.text('Dyah Zhafira'), findsOneWidget);
@@ -16,7 +16,7 @@ void main() {
   });
 
   testWidgets('menekan tombol memunculkan SnackBar', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
 
     await tester.tap(find.text('Tambah Project'));
     await tester.pump();
@@ -28,7 +28,7 @@ void main() {
   });
 
   testWidgets('menekan Logout membuka dialog konfirmasi', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
 
     await tester.ensureVisible(find.text('Logout'));
     await tester.tap(find.text('Logout'));
@@ -45,7 +45,7 @@ void main() {
   testWidgets('menekan Keluar menutup dialog dan menampilkan SnackBar', (
     tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
 
     await tester.ensureVisible(find.text('Logout'));
     await tester.tap(find.text('Logout'));
@@ -59,7 +59,7 @@ void main() {
   });
 
   testWidgets('drawer membuka form lalu kembali ke Home', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
 
     await tester.tap(find.byTooltip('Open navigation menu'));
     await tester.pumpAndSettle();
@@ -75,7 +75,7 @@ void main() {
   });
 
   testWidgets('tombol Tambah Project membuka form', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
 
     await tester.tap(find.text('Tambah Project'));
     await tester.pumpAndSettle();
@@ -84,36 +84,38 @@ void main() {
   });
 
   testWidgets('form menolak input kosong', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
     await tester.tap(find.text('Tambah Project'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Save'));
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Nama proyek tidak boleh kosong!'), findsOneWidget);
-    expect(find.text('Deskripsi proyek tidak boleh kosong!'), findsOneWidget);
+    expect(find.text('Title tidak boleh kosong!'), findsOneWidget);
+    expect(find.text('Description tidak boleh kosong!'), findsOneWidget);
     expect(find.text('Proyek berhasil ditambahkan!'), findsNothing);
   });
 
   testWidgets('form valid menampilkan dialog berisi data', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
     await tester.tap(find.text('Tambah Project'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Nama Proyek'),
+      find.widgetWithText(TextFormField, 'Title'),
       'MyPortfolio',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Deskripsi Proyek'),
+      find.widgetWithText(TextFormField, 'Description'),
       'Aplikasi portofolio',
     );
+    await tester.ensureVisible(find.text('Save'));
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
     expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
-    expect(find.text('Nama Proyek: MyPortfolio'), findsOneWidget);
+    expect(find.text('Judul: MyPortfolio'), findsOneWidget);
 
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
@@ -121,7 +123,7 @@ void main() {
   });
 
   testWidgets('drawer membuka form experience', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
 
     await tester.tap(find.byTooltip('Open navigation menu'));
     await tester.pumpAndSettle();
@@ -132,7 +134,7 @@ void main() {
   });
 
   testWidgets('form experience menolak input kosong', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
     await tester.ensureVisible(find.text('Tambah Experience'));
     await tester.tap(find.text('Tambah Experience'));
     await tester.pumpAndSettle();
@@ -150,7 +152,7 @@ void main() {
   testWidgets('form experience valid menampilkan dialog ringkasan', (
     tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
     await tester.ensureVisible(find.text('Tambah Experience'));
     await tester.tap(find.text('Tambah Experience'));
     await tester.pumpAndSettle();
@@ -181,7 +183,7 @@ void main() {
   });
 
   testWidgets('form experience menolak tautan tanpa http', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
     await tester.ensureVisible(find.text('Tambah Experience'));
     await tester.tap(find.text('Tambah Experience'));
     await tester.pumpAndSettle();
@@ -203,7 +205,7 @@ void main() {
   testWidgets('SnackBar tidak menutupi form setelah pindah halaman', (
     tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
     await tester.ensureVisible(find.text('Tambah Experience'));
     await tester.tap(find.text('Tambah Experience'));
     await tester.pumpAndSettle();
@@ -217,7 +219,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 

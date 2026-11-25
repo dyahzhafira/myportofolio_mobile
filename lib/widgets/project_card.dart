@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
-/// Data tombol menu
 class ItemHomepage {
   final String name;
   final IconData icon;
@@ -11,7 +14,6 @@ class ItemHomepage {
   ItemHomepage(this.name, this.icon, this.color);
 }
 
-/// Kartu tombol menu
 class ItemCard extends StatelessWidget {
   final ItemHomepage item;
 
@@ -32,12 +34,15 @@ class ItemCard extends StatelessWidget {
               ),
             );
           if (item.name == "Logout") showLogoutDialog(context);
-          if (item.name == "Tambah Project") {
+          if (item.name == "Lihat Project") {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ProjectFormPage()),
+              MaterialPageRoute(
+                builder: (context) => const ProjectListScreen(),
+              ),
             );
           }
+          if (item.name == "Tambah Project") _openProjectForm(context);
           if (item.name == "Tambah Experience") {
             Navigator.push(
               context,
@@ -49,7 +54,6 @@ class ItemCard extends StatelessWidget {
         },
         child: Container(
           padding: const EdgeInsets.all(8),
-          // FittedBox kecilin isi kartu biar ga overflow
           child: LayoutBuilder(
             builder: (context, constraints) => Center(
               child: FittedBox(
@@ -78,7 +82,15 @@ class ItemCard extends StatelessWidget {
   }
 }
 
-/// Dialog konfirmasi logout
+Future<void> _openProjectForm(BuildContext context) async {
+  if (!await ensureLoggedIn(context)) return;
+  if (!context.mounted) return;
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const ProjectFormPage()),
+  );
+}
+
 void showLogoutDialog(BuildContext context) {
   showDialog(
     context: context,
@@ -92,13 +104,21 @@ void showLogoutDialog(BuildContext context) {
         ),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: Colors.red),
-          onPressed: () {
+          onPressed: () async {
             Navigator.of(dialogContext).pop();
-            ScaffoldMessenger.of(context)
+            final auth = context.read<AuthState>();
+            final messenger = ScaffoldMessenger.of(context);
+            final wasLoggedIn = auth.isLoggedIn;
+            await auth.logout();
+            messenger
               ..hideCurrentSnackBar()
               ..showSnackBar(
-                const SnackBar(
-                  content: Text('Kamu telah keluar dari MyPortfolio'),
+                SnackBar(
+                  content: Text(
+                    wasLoggedIn
+                        ? 'Kamu telah keluar dari MyPortfolio'
+                        : 'Kamu belum login',
+                  ),
                 ),
               );
           },
