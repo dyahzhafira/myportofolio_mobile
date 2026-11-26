@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:myportofolio_mobile/config.dart';
 import 'package:myportofolio_mobile/models/project.dart';
+import 'package:myportofolio_mobile/models/experience.dart';
 
 class ApiException implements Exception {
   const ApiException(this.statusCode, this.message);
@@ -82,5 +83,38 @@ class ApiClient {
       return;
     }
     throw ApiException(response.statusCode, response.body);
+  }
+
+  Future<List<Experience>> getExperiences() async {
+    final response = await _client.get(
+      _uri('/api/v1/experiences/'),
+      headers: const {'Accept': 'application/json'},
+    );
+    _ensureSuccess(response);
+
+    final decoded = jsonDecode(response.body) as List<dynamic>;
+    return decoded
+        .map((item) => Experience.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<Experience> createExperience(
+    Experience experience, {
+    required String token,
+  }) async {
+    final response = await _client.post(
+      _uri('/api/v1/experience/'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Token $token',
+      },
+      body: jsonEncode(experience.toJson()),
+    );
+    _ensureSuccess(response);
+
+    return Experience.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 }
