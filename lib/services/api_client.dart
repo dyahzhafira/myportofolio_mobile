@@ -103,7 +103,7 @@ class ApiClient {
     required String token,
   }) async {
     final response = await _client.post(
-      _uri('/api/v1/experience/'),
+      _uri('/api/v1/experiences/'),
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json; charset=UTF-8',
