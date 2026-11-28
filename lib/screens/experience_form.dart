@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:myportofolio_mobile/models/experience.dart';
+import 'package:myportofolio_mobile/screens/experience_list_screen.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:provider/provider.dart';
 
 class ExperienceFormPage extends StatefulWidget {
   const ExperienceFormPage({super.key});
@@ -18,16 +24,17 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
   DateTime? _start;
   DateTime? _end;
   bool _isCurrent = false;
-  String _category = 'Full-Time';
+  String _category = 'full-time';
+  bool _isSubmitting = false;
 
-  final List<String> _categories = [
-    'Internship',
-    'Research',
-    'Volunteer',
-    'Part-Time',
-    'Full-Time',
-    'Freelance',
-  ];
+  static const _categories = {
+    'internship': 'Internship',
+    'research': 'Research',
+    'volunteer': 'Volunteer',
+    'part-time': 'Part-Time',
+    'full-time': 'Full-Time',
+    'freelance': 'Freelance',
+  };
 
   @override
   void initState() {
@@ -105,14 +112,57 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
       _start = null;
       _end = null;
       _isCurrent = false;
-      _category = 'Full-Time';
+      _category = 'full-time';
       _startCtrl.clear();
       _endCtrl.clear();
     });
   }
 
-  void _submit() {
+  DateTime _toApiDate(DateTime d) => DateTime.utc(d.year, d.month, d.day, 12);
+
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!await ensureLoggedIn(context)) return;
+    if (!mounted) return;
+
+    final api = context.read<ApiClient>();
+    final auth = context.read<AuthState>();
+    final messenger = ScaffoldMessenger.of(context);
+    final experience = Experience(
+      title: _titleCtrl.text.trim(),
+      description: _descCtrl.text.trim(),
+      category: _category,
+      startedAt: _toApiDate(_start!),
+      endedAt: _isCurrent ? null : _toApiDate(_end!),
+      thumbnail: _thumbnailCtrl.text.trim(),
+    );
+
+    void showMessage(String message) {
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      await api.createExperience(experience, token: auth.token!);
+      if (!mounted) return;
+      _showSuccessDialog();
+    } on ApiException catch (e) {
+      if (e.statusCode == 401) {
+        await auth.logout();
+        showMessage('Sesi berakhir, silakan login ulang');
+        if (mounted) await ensureLoggedIn(context);
+      } else {
+        showMessage('Gagal menyimpan experience (${e.statusCode})');
+      }
+    } on Exception {
+      showMessage('Tidak dapat terhubung ke server');
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  void _showSuccessDialog() {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -122,7 +172,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Judul: ${_titleCtrl.text.trim()}'),
-              Text('Kategori: $_category'),
+              Text('Kategori: ${_categories[_category]}'),
               Text('Mulai: ${_startCtrl.text}'),
               Text('Selesai: ${_isCurrent ? 'Sekarang' : _endCtrl.text}'),
               Text('Deskripsi: ${_descCtrl.text.trim()}'),
@@ -136,6 +186,18 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
             onPressed: () {
               Navigator.pop(dialogContext);
               _resetForm();
+            },
+          ),
+          TextButton(
+            child: const Text('Lihat Daftar'),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ExperienceListScreen(),
+                ),
+              );
             },
           ),
         ],
@@ -173,8 +235,13 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                   isExpanded: true,
                   decoration: _decoration('Kategori'),
                   initialValue: _category,
-                  items: _categories
-                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  items: _categories.entries
+                      .map(
+                        (e) => DropdownMenuItem(
+                          value: e.key,
+                          child: Text(e.value),
+                        ),
+                      )
                       .toList(),
                   onChanged: (value) => setState(() => _category = value!),
                 ),
@@ -257,9 +324,9 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                     style: ButtonStyle(
                       backgroundColor: WidgetStateProperty.all(Colors.indigo),
                     ),
-                    onPressed: _submit,
+                    onPressed: _isSubmitting ? null : _submit,
                     child: const Text(
-                      'Simpan',
+                      'Save',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),

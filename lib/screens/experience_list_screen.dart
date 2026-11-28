@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/models/experience.dart';
+import 'package:myportofolio_mobile/screens/experience_detail_screen.dart';
 import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/utils/format_date.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:provider/provider.dart';
 
@@ -62,7 +64,7 @@ class _ExperienceListScreenState extends State<ExperienceListScreen> {
                     ElevatedButton.icon(
                       onPressed: _reload,
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Coba lagi'),
+                      label: const Text('Retry'),
                     ),
                   ],
                 ),
@@ -97,10 +99,20 @@ class _ExperienceListScreenState extends State<ExperienceListScreen> {
                     title: Text(experience.title),
                     subtitle: Text(
                       '${experience.categoryDisplay}\n'
-                      '${_formatDate(experience.startedAt)} - '
-                      '${experience.endedAt == null ? 'Sekarang' : _formatDate(experience.endedAt!)}',
+                      '${formatDate(experience.startedAt)} - '
+                      '${experience.endedAt == null ? 'Sekarang' : formatDate(experience.endedAt!)}',
                     ),
                     isThreeLine: true,
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ExperienceDetailScreen(experience: experience),
+                        ),
+                      );
+                    },
                   ),
                 );
               },
@@ -110,10 +122,4 @@ class _ExperienceListScreenState extends State<ExperienceListScreen> {
       ),
     );
   }
-}
-
-String _formatDate(DateTime date) {
-  final local = date.toLocal();
-  return '${local.day.toString().padLeft(2, '0')}/'
-      '${local.month.toString().padLeft(2, '0')}/${local.year}';
 }

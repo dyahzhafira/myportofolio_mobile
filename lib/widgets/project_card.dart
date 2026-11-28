@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/screens/experience_list_screen.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/screens/project_list_screen.dart';
 import 'package:myportofolio_mobile/services/auth_state.dart';
@@ -43,14 +44,15 @@ class ItemCard extends StatelessWidget {
             );
           }
           if (item.name == "Tambah Project") _openProjectForm(context);
-          if (item.name == "Tambah Experience") {
+          if (item.name == "Lihat Experience") {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const ExperienceFormPage(),
+                builder: (context) => const ExperienceListScreen(),
               ),
             );
           }
+          if (item.name == "Tambah Experience") _openExperienceForm(context);
         },
         child: Container(
           padding: const EdgeInsets.all(8),
@@ -88,6 +90,15 @@ Future<void> _openProjectForm(BuildContext context) async {
   Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => const ProjectFormPage()),
+  );
+}
+
+Future<void> _openExperienceForm(BuildContext context) async {
+  if (!await ensureLoggedIn(context)) return;
+  if (!context.mounted) return;
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const ExperienceFormPage()),
   );
 }
 

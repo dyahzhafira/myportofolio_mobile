@@ -139,8 +139,8 @@ void main() {
     await tester.tap(find.text('Tambah Experience'));
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('Simpan'));
-    await tester.tap(find.text('Simpan'));
+    await tester.ensureVisible(find.text('Save'));
+    await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
     expect(find.text('Judul tidak boleh kosong!'), findsOneWidget);
@@ -173,8 +173,8 @@ void main() {
     await tester.tap(find.text('Masih bekerja di sini'));
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('Simpan'));
-    await tester.tap(find.text('Simpan'));
+    await tester.ensureVisible(find.text('Save'));
+    await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
     expect(find.text('Experience berhasil ditambahkan!'), findsOneWidget);
@@ -192,8 +192,8 @@ void main() {
       find.widgetWithText(TextFormField, 'Thumbnail URL (opsional)'),
       'bukan-url',
     );
-    await tester.ensureVisible(find.text('Simpan'));
-    await tester.tap(find.text('Simpan'));
+    await tester.ensureVisible(find.text('Save'));
+    await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
     expect(

@@ -22,6 +22,7 @@ const sampleProjects = [
 MockClient fakeBackend({
   List<Object> projects = sampleProjects,
   int projectPostStatus = 201,
+  int experiencePostStatus = 201,
   List<http.Request>? log,
 }) {
   return MockClient((request) async {
@@ -39,6 +40,16 @@ MockClient fakeBackend({
         jsonEncode({...body, 'id': 'new-id', 'tech_stack': []}),
         201,
       );
+    }
+    if (path == '/api/v1/experiences/' && request.method == 'GET') {
+      return http.Response('[]', 200);
+    }
+    if (path == '/api/v1/experiences/' && request.method == 'POST') {
+      if (experiencePostStatus != 201) {
+        return http.Response('{"detail":"x"}', experiencePostStatus);
+      }
+      final body = jsonDecode(request.body) as Map<String, dynamic>;
+      return http.Response(jsonEncode({...body, 'id': 'new-id'}), 201);
     }
     if (path == '/api/v1/auth/token/') {
       final body = jsonDecode(request.body) as Map<String, dynamic>;
