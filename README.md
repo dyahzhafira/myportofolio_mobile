@@ -1,33 +1,49 @@
 # MyPortfolio Mobile
 
+![CI](https://github.com/dyahzhafira/myportofolio_mobile/actions/workflows/main.yaml/badge.svg)
+
 Nama  : Dyah Zhafira Wibowo
 NPM   : 2506623723
 Kelas : PBP E
 
 ### Deskripsi Proyek
 
-Mobile app untuk portfolio berbasis Flutter, klien mobile untuk website portofolio Django ([myportofolio](https://github.com/dyahzhafira/myportfolio)). Saat ini sudah ada halaman menu utama, drawer navigasi, serta form Tambah Project dan Tambah Experience. Data form belum disimpan dan belum terhubung ke API Django.
+Mobile app untuk portfolio berbasis Flutter, klien mobile untuk website portofolio Django ([myportofolio](https://github.com/dyahzhafira/myportfolio)). Aplikasi punya menu utama, drawer navigasi, login token, serta daftar, detail, dan form tambah untuk Project dan Experience yang terhubung ke API Django (`/api/v1/projects/` dan `/api/v1/experiences/`). Melihat data bersifat publik, sedangkan menambah data butuh login dengan akun superuser.
 
 ### Setup Lokal
 
 1. Pasang Flutter SDK (dikembangkan dengan Flutter 3.44.8, Dart 3.12.2).
 2. Clone repo dan masuk ke foldernya.
 3. Unduh dependensi: `flutter pub get`.
-4. Jalankan di Chrome: `flutter run -d chrome` (atau `flutter run` untuk emulator Android).
-5. Analisis kode: `flutter analyze`.
-6. Jalankan test: `flutter test`.
+4. Generate kode model: `dart run build_runner build --delete-conflicting-outputs` 
+5. Jalankan backend Django ([myportfolio](https://github.com/dyahzhafira/myportfolio)) dengan `python manage.py runserver`.
+6. Jalankan Flutter:
+   - Emulator Android: `flutter run` (default `http://10.0.2.2:8000`).
+   - Chrome: `flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000`.
+   - Backend yang sudah di-deploy (`https://dyah-zhafira-myportfolio.pws.cs.ui.ac.id`): `flutter run --dart-define=API_BASE_URL=https://dyah-zhafira-myportfolio.pws.cs.ui.ac.id`.
+7. Analisis kode: `flutter analyze`.
+8. Jalankan test: `flutter test`.
 
 ### Struktur Proyek
 
 | Berkas | Isi |
 |---|---|
 | `lib/main.dart` | Bootstrap aplikasi, `MaterialApp` dan tema (indigo, secondary amber) |
+| `lib/config.dart` | `apiBaseUrl`, dapat ditimpa lewat `--dart-define` |
+| `lib/models/project.dart`, `lib/models/experience.dart` | Model `@JsonSerializable` sesuai serializer Django |
+| `lib/services/api_client.dart` | `ApiClient` (GET dan POST project dan experience, DELETE experience, token, logout) dan `ApiException` |
+| `lib/services/auth_state.dart` | `AuthState` (`ChangeNotifier`), token disimpan di memori |
+| `lib/utils/format_date.dart` | `formatDate` untuk tampilan tanggal |
 | `lib/screens/menu.dart` | `MyHomePage` (Stateless) dan `InfoCard` |
-| `lib/screens/project_form.dart` | `ProjectFormPage` (Stateful): form Tambah Project |
-| `lib/screens/experience_form.dart` | `ExperienceFormPage` (Stateful): form Tambah Experience |
+| `lib/screens/login_screen.dart` | Halaman login |
+| `lib/screens/project_list_screen.dart`, `project_detail_screen.dart` | Daftar (`FutureBuilder`, `RefreshIndicator`) dan detail project |
+| `lib/screens/experience_list_screen.dart`, `experience_detail_screen.dart` | Daftar dan detail experience |
+| `lib/screens/project_form.dart`, `lib/screens/experience_form.dart` | Form tambah, POST terautentikasi |
 | `lib/widgets/left_drawer.dart` | `LeftDrawer`, dipakai di semua halaman |
 | `lib/widgets/project_card.dart` | `ItemHomepage`, `ItemCard`, `showLogoutDialog` |
-| `test/widget_test.dart` | Widget test menu, drawer, dan kedua form |
+| `lib/widgets/auth_guard.dart` | `ensureLoggedIn`: route guard ke halaman login |
+| `.github/workflows/main.yaml` | CI (format, analyze, test) dan build APK |
+| `test/` | Widget test dan unit test API (backend palsu lewat `MockClient`) |
 
 ### Progres Mingguan
 
@@ -35,6 +51,7 @@ Mobile app untuk portfolio berbasis Flutter, klien mobile untuk website portofol
 - Tugas 7: identitas sendiri pada `InfoCard`, warna latar berbeda per tombol lewat field `color` di `ItemHomepage`, tombol Lihat Project, Lihat Experience, Tambah Project, dan Logout.
 - Tutorial 09: `LeftDrawer`, form Tambah Project (validasi dan dialog ringkasan), navigasi dengan `Navigator.push` dan `pushReplacement`, refactor ke `lib/screens/` dan `lib/widgets/`.
 - Tugas 8: form Tambah Experience (date picker, validasi tanggal dan URL), card Tambah Experience, opsi Add Experience di drawer.
+- Tugas 9: model `@JsonSerializable`, API Experience untuk GET, POST, dan DELETE, halaman daftar dan detail dengan `FutureBuilder` dan `RefreshIndicator`, form tambah experience dengan token dan penanganan 401, fitur hapus experience, GitHub Actions untuk CI dan build APK beserta badge, serta unit dan widget test menggunakan `MockClient`.
 
 ### Fitur Menu
 
@@ -136,3 +153,37 @@ Keterbatasan AI dan perbaikan yang dilakukan:
 
 #### FITUR TAMBAHAN (Tugas 8)
 - Checkbox "Masih bekerja di sini", bakal nonaktifin tanggal selesai, dialog show "Selesai: Sekarang".
+
+### Tugas 9
+1. Mengapa kita menggunakan @JsonSerializable(fieldRename: FieldRename.snake) dan @JsonKey(includeToJson: false) alih-alih mengirim objek Map<String, dynamic> mentah langsung dari widget? Jelaskan satu bug yang dicegah atau dapat dicegah oleh pendekatan ini pada model bagianmu.
+Karena dengan model Experience, key JSON itu akan dibuat otomatis dan nama field dart yang camelCase akan menjadi snake_case ke django, seperti categoryDisplay menjadi category_display tanpa ketik manual. Selain itu, tipenya juga dicek di compiler seperti startedAt itu DateTime. Sedangkan di Map, semua nilai tipe dynamic dan ketika salah ketik baru ketahuan saat dijalankan. includeToJson: false itu dipakai di field yang dibuat dan di hitung server, contoh id, categoryDisplay, isOngoing, isStarred, starCount, dan starredByNames, sehingga ga ikut kekirim di body POST. Bug yang dicegah adalah ketika saya tulis manual map dengan key startedAt, nanti django akan tolak dengan 400 karna field required started_at itu gaada. Dan dengan fieldRename.snake, key yang dirim selalu started_at dan field server ga pernah salah kirim.
+
+2. Mengapa Future yang diteruskan ke FutureBuilder harus diinisialisasi di dalam initState() alih-alih langsung di dalam build(), dan mengapa ApiClient sebaiknya melempar ApiException daripada mengembalikan null pada respons HTTP non-2xx?
+
+build() itu bisa dipanggil berkali kali tiap setState, perubahan ukuran layar, atau saat keyboard muncu;. Kalau Future dibuat di dalam build(), tiap panggilan kirim request HTTP baru, FutureBuilder akan kembali ke status loading, dan tampilan berkedip bahkan bisa berulang. initState() itu cuman jalan sekali, jadi ketika request sekali, pengambilan ulang itu cuman lewat _reload() (tombol retry atau tarik buat refresh). ApiException bawa statusCode, sedangkan null itu akan membuat informasi apakah masalahnya itu 401, 400, atau 500 itu hilang, sehingga pemanggil bisa lupa cek null. Dengan exception, form bisa membedakan penanganannya, misal 401 itu untuk sesi dihapus dan user diminta login ulang. Sedangkan FutureBuilder itu menggunakan snapshot.hasError untuk tampilin pesan dan tombol Retry.
+
+3. Bandingkan SessionAuthentication milik Django (dari Tutorial 04/07) dengan TokenAuthentication milik DRF (dari Tutorial 10). Mengapa myportfolio_mobile menggunakan TokenAuthentication sementara SessionAuthentication tetap diaktifkan pada backend Django?
+
+SessionAuthentication itu save login di server dan identify user lewat cookie sessionid dan butuh token CSRF untuk request yang ubah data karna cookie dikirim otomatis sama browser. Hal ini cocok untuk web. TokenAuthentication itu menggunakan token dari /api/v1/auth/token, kemudian dikirim lewat header Authorization: Token <key> di tiap request dan tanpa cookie & CSRF. 
+
+Aplikasi Flutter itu bukan browser, sehingga tidak mengelola cookie dan CSRF dengan sendirinya, jadi token itu disimpan di memory AuthState dan dikirim lewat header. Logout bakal manggil /api/v1/auth/logout yang hapus token di server. SessionAuthentication bakal tetap diaktifkan karena page web Django (template, admin, sama star button di web) masih pakai login session based. Urutannya TokenAuthentication dulu, agar request tanpa credential dapet 401 bukan 403, baru SessionAuthentication di web.
+
+4. Jelaskan peran job build (very_good_workflows) dan build_apk dalam pipeline .github/workflows/main.yaml milikmu (termasuk pemeriksaan apa saja yang dijalankan very_good_workflows di balik layar). Mengapa berkas *.g.dart dimasukkan ke .gitignore meskipun CI membutuhkannya untuk menganalisis dan membangun aplikasi?
+
+Job build manggil workflow flutter_package.yml dari very_good_workflows. Di background dia jalanin langkah setup, download dependensi, cek format, dan jalanin flutter analyze, trakhir flutter test dengan coverage dan cek min coverage dan *.g.dart itu ga termasuk di coverage. Job build_apk cuman jalan after build sukses dan pasang Flutter 3.44.8 dan jalanun pub get dan build runner dan flutter build apk --release dengan --dart-define=API_BASE_URL dari variabel repo dan upload app-release apk as artefak app-release-apk. *.g.dart masuk ke gitignore karena berkas itu hasil generate yang bisa dibuat ulang dari model dan build_runner. Sehingga, jika di commit diff bisa konflik dan resikonya bisa bikin model ga sinkron. CI itu ga bergantung ke hasil commit karna build_runner dijalanin dulu di setup sebelum analisis dan build.
+
+### AI Disclosure (Tugas 9)
+Tools: Claude
+log chat: https://claude.ai/share/7db4b4c4-0d02-41a6-bbd2-7dbedefd0345
+Saya mengirim PDF tugas ke Claude, lalu meminta Claude cek repo, create checklist, dan memandu pengerjaan bagian Experience secara bertahap (model, ApiClient, screen daftar, screen detail, sambungan ke menu dan drawer, form POST, tes, README) 
+
+Saya mengirim PDF tugas ke Claude, lalu meminta Claude memeriksa repo, crate checklist, dan bantu kasih template step by step bertahap. Claude kasih penjelasan, review, dan potongan kode untuk model, ApiClient, layar daftar dan detail, navigasi, form POST, dan tes.
+
+Keterbatasan AI dan perbaikan:
+Claude hanya mengirimkan beberapa potongan code sebagai base template, sehingga saya menyesuaikannya kembali dengan struktur code saya.
+Contoh builder dari Claude untuk screen daftar itu lebih sederhana, sehingga saya mengikuti project_list_screen.dart, contohnya untuk padding.
+Claude tidak bisa menjalankan Flutter, sehingga build, analyze, dan tes perlu saya jalankan sendiri.
+
+#### FITUR TAMBAHAN (Tugas 9)
+- Hapus Experience dengan `DELETE` dengan token. Delete button hanya muncul saat login, ada konfirmasi, dan daftar dimuat ulang setelah berhasil. Error 401 minta login ulang, 403 kasih message khusus, dan error lainnya ditampilin lewat SnackBar.
+- Testing mencakup unit test `ApiClient` untuk GET, POST, DELETE, token, dan `ApiException`, serta widget test untuk daftar, detail, POST, 401, dan hapus Experience.

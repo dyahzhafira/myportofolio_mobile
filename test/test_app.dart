@@ -19,10 +19,26 @@ const sampleProjects = [
   },
 ];
 
+const sampleExperiences = [
+  {
+    'id': '33333333-3333-3333-3333-333333333333',
+    'title': 'Asdos PBP',
+    'description': 'Membantu mahasiswa',
+    'category': 'part-time',
+    'category_display': 'Part-Time',
+    'thumbnail': '',
+    'started_at': '2026-01-05T12:00:00Z',
+    'ended_at': null,
+    'is_ongoing': true,
+  },
+];
+
 MockClient fakeBackend({
   List<Object> projects = sampleProjects,
   int projectPostStatus = 201,
   int experiencePostStatus = 201,
+  int experienceDeleteStatus = 204,
+  List<Object> experiences = const [],
   List<http.Request>? log,
 }) {
   return MockClient((request) async {
@@ -42,7 +58,13 @@ MockClient fakeBackend({
       );
     }
     if (path == '/api/v1/experiences/' && request.method == 'GET') {
-      return http.Response('[]', 200);
+      return http.Response(jsonEncode(experiences), 200);
+    }
+    if (path.startsWith('/api/v1/experiences/') && request.method == 'DELETE') {
+      return http.Response(
+        experienceDeleteStatus == 204 ? '' : '{"detail":"x"}',
+        experienceDeleteStatus,
+      );
     }
     if (path == '/api/v1/experiences/' && request.method == 'POST') {
       if (experiencePostStatus != 201) {

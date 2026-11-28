@@ -117,4 +117,12 @@ class ApiClient {
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }
+
+  Future<void> deleteExperience(String id, {required String token}) async {
+    final response = await _client.delete(
+      _uri('/api/v1/experiences/$id/'),
+      headers: {'Authorization': 'Token $token'},
+    );
+    _ensureSuccess(response);
+  }
 }

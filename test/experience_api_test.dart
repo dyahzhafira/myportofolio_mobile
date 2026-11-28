@@ -156,4 +156,131 @@ void main() {
     expect(find.text('Sesi berakhir, silakan login ulang'), findsOneWidget);
     expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
   });
+
+  test('deleteExperience mengirim DELETE dengan token', () async {
+    final log = <http.Request>[];
+    final api = ApiClient(client: fakeBackend(log: log));
+
+    await api.deleteExperience('abc-123', token: 'tok');
+
+    final request = log.single;
+    expect(request.method, 'DELETE');
+    expect(request.url.path, '/api/v1/experiences/abc-123/');
+    expect(request.headers['Authorization'], 'Token tok');
+  });
+
+  test('deleteExperience melempar ApiException saat 403', () {
+    final api = ApiClient(client: fakeBackend(experienceDeleteStatus: 403));
+
+    expect(
+      api.deleteExperience('abc-123', token: 'tok'),
+      throwsA(
+        isA<ApiException>().having((e) => e.statusCode, 'statusCode', 403),
+      ),
+    );
+  });
+
+  group('hapus experience dari layar detail', () {
+    Future<void> openDetail(WidgetTester tester) async {
+      await tester.ensureVisible(find.text('Lihat Experience'));
+      await tester.tap(find.text('Lihat Experience'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Asdos PBP'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('berhasil menghapus lalu daftar dimuat ulang', (tester) async {
+      final log = <http.Request>[];
+      await tester.pumpWidget(
+        buildApp(
+          client: fakeBackend(experiences: sampleExperiences, log: log),
+        ),
+      );
+      await openDetail(tester);
+
+      await tester.tap(find.byTooltip('Hapus'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Hapus'));
+      await tester.pumpAndSettle();
+
+      expect(
+        log.where((r) => r.method == 'DELETE').single.headers['Authorization'],
+        'Token token',
+      );
+      expect(log.where((r) => r.method == 'GET').length, greaterThan(1));
+      expect(find.text('Experience berhasil dihapus'), findsOneWidget);
+      expect(find.text('Experiences'), findsOneWidget);
+    });
+
+    testWidgets('batal tidak mengirim DELETE', (tester) async {
+      final log = <http.Request>[];
+      await tester.pumpWidget(
+        buildApp(
+          client: fakeBackend(experiences: sampleExperiences, log: log),
+        ),
+      );
+      await openDetail(tester);
+
+      await tester.tap(find.byTooltip('Hapus'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+
+      expect(log.where((r) => r.method == 'DELETE'), isEmpty);
+    });
+
+    testWidgets('tombol hapus tidak muncul kalau belum login', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          client: fakeBackend(experiences: sampleExperiences),
+          token: null,
+        ),
+      );
+      await openDetail(tester);
+
+      expect(find.byTooltip('Hapus'), findsNothing);
+    });
+
+    testWidgets('401 meminta login ulang', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          client: fakeBackend(
+            experiences: sampleExperiences,
+            experienceDeleteStatus: 401,
+          ),
+        ),
+      );
+      await openDetail(tester);
+
+      await tester.tap(find.byTooltip('Hapus'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Hapus'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sesi berakhir, silakan login ulang'), findsOneWidget);
+      expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
+    });
+
+    testWidgets('403 menampilkan pesan khusus pemilik', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          client: fakeBackend(
+            experiences: sampleExperiences,
+            experienceDeleteStatus: 403,
+          ),
+        ),
+      );
+      await openDetail(tester);
+
+      await tester.tap(find.byTooltip('Hapus'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Hapus'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Hanya pemilik portofolio yang dapat menghapus'),
+        findsOneWidget,
+      );
+    });
+  });
 }

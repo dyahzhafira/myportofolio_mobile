@@ -104,14 +104,15 @@ class _ExperienceListScreenState extends State<ExperienceListScreen> {
                     ),
                     isThreeLine: true,
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      final deleted = await Navigator.push<bool>(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
                               ExperienceDetailScreen(experience: experience),
                         ),
                       );
+                      if (deleted == true && mounted) _reload();
                     },
                   ),
                 );
